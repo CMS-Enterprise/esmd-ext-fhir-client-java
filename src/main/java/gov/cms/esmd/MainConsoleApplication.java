@@ -28,11 +28,11 @@ public class MainConsoleApplication {
             var token = new AuthenticationAPIHandler(config.getAppSettings()).getToken();
             if (token.isSuccess()) {
                 log.info("token value is - {}", token.getResponse().getAccessToken());
-                var notification = new NotificationAPIHandler(config.getAppSettings(), token.getResponse().getAccessToken());
-                if (notification.getNotifications().isSuccess()) {
-                    log.info("Notification Retrieved Success - {}", new ObjectMapper().writeValueAsString(notification.getNotifications().getResponse()));
+                var notification = new NotificationAPIHandler(config.getAppSettings(), token.getResponse().getAccessToken()).getNotifications();
+                if (notification.isSuccess()) {
+                    log.info("Notification Retrieved Success - {}", new ObjectMapper().writeValueAsString(notification.getResponse()));
                 } else {
-                    log.error("Notification Retrieval Failed - {}", notification.getNotifications().getError());
+                    log.error("Notification Retrieval Failed - {}", notification.getError());
                 }
 
             } else {
