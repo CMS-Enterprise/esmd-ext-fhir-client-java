@@ -66,8 +66,7 @@ public class NotificationAPIHandler {
             // -----------------------------
             // Parse URL
             // -----------------------------
-            var updatedUrl = settings.getEndpointURL().replace("${endPointBaseUrl}", appSettings.getEndPointBaseUrl());
-            var parsed = URLUtils.parseUrl(updatedUrl);
+            var parsed = URLUtils.parseUrl(settings.getEndpointURL());
             String resourcePathWithQuery = parsed.getResourcePath() + queryString;
             String finalUrl = parsed.getBaseUrl() + resourcePathWithQuery;
 

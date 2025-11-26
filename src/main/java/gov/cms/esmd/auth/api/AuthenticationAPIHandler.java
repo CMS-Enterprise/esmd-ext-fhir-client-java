@@ -1,7 +1,6 @@
 package gov.cms.esmd.auth.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import gov.cms.esmd.auth.model.Token;
 import gov.cms.esmd.common.model.ClientResponse;
 import gov.cms.esmd.common.util.CurlUtil;
@@ -12,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
@@ -48,9 +46,7 @@ public class AuthenticationAPIHandler {
                 return new ClientResponse<>(cachedToken, true, null);
             }
 
-            String endpointUrl = authenticationAPISettings.getEndpointURL()
-                    .replace("${endPointBaseUrl}", appSettings.getEndPointBaseUrl());
-
+            String endpointUrl = authenticationAPISettings.getEndpointURL();
             int timeoutMs = (int) authenticationAPISettings.getHttpClientRequestTimeOutSeconds() * 1000;
 
             // Configure timeout
