@@ -4,18 +4,13 @@ package gov.cms.esmd.notification.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.cms.esmd.common.model.ClientResponse;
 
-import gov.cms.esmd.common.util.CurlUtil;
-import gov.cms.esmd.common.util.DataFileWriterUtils;
-import gov.cms.esmd.common.util.GuidUtil;
-import gov.cms.esmd.common.util.URLUtils;
+import gov.cms.esmd.common.util.*;
 import gov.cms.esmd.config.model.AppConfig;
 import gov.cms.esmd.notification.model.NotificationResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
@@ -23,8 +18,6 @@ import org.apache.http.util.EntityUtils;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-
-import static gov.cms.esmd.common.util.Constants.*;
 
 @Slf4j
 public class NotificationAPIHandler {
@@ -89,17 +82,8 @@ public class NotificationAPIHandler {
             // -----------------------------
 
             var timeoutMs = (int) settings.getHttpClientRequestTimeOutSeconds() * 1000;
-            // Configure timeout
-            RequestConfig requestConfig = RequestConfig.custom()
-                    .setConnectTimeout(timeoutMs)
-                    .setConnectionRequestTimeout(timeoutMs)
-                    .setSocketTimeout(timeoutMs)
-                    .build();
 
-            HttpGet httpGet = new HttpGet(finalUrl);
-            httpGet.addHeader("Accept", settings.getAccept());
-            httpGet.addHeader("Authorization", "Bearer " + token);
-            httpGet.setConfig(requestConfig);
+            HttpGet httpGet = HttpClientUtil.getHttpGet(finalUrl,timeoutMs,settings.getAccept(),token);
 
 
             try (CloseableHttpClient client = HttpClientBuilder.create().build();

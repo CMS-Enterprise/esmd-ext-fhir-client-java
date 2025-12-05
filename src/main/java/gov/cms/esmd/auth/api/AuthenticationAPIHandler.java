@@ -49,12 +49,6 @@ public class AuthenticationAPIHandler {
             String endpointUrl = authenticationAPISettings.getEndpointURL();
             int timeoutMs = (int) authenticationAPISettings.getHttpClientRequestTimeOutSeconds() * 1000;
 
-            // Configure timeout
-            RequestConfig requestConfig = RequestConfig.custom()
-                    .setConnectTimeout(timeoutMs)
-                    .setConnectionRequestTimeout(timeoutMs)
-                    .setSocketTimeout(timeoutMs)
-                    .build();
 
             Map<String, String> headerMap = Map.of(
                     CLIENT_ID, authenticationAPISettings.getClientId(),
@@ -64,7 +58,7 @@ public class AuthenticationAPIHandler {
 
 
             // Build http post request
-            HttpPost httpPost = getHttpPost(endpointUrl, requestConfig, headerMap, null);
+            HttpPost httpPost = getHttpPost(endpointUrl, timeoutMs, headerMap, null);
 
             log.info("Token request (POST): {}", endpointUrl);
 
