@@ -21,6 +21,21 @@ public final class HttpClientUtil {
         return httpPost;
     }
 
+    public static HttpPost getHttpPost(String endpointUrl, int timeoutMs, Map<String, String> headerMap, String content) {
+
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectTimeout(timeoutMs)
+                .setConnectionRequestTimeout(timeoutMs)
+                .setSocketTimeout(timeoutMs)
+                .build();
+
+        HttpPost httpPost = new HttpPost(endpointUrl);
+        httpPost.setConfig(requestConfig);
+        headerMap.forEach(httpPost::addHeader);
+        httpPost.setEntity(new StringEntity(content, StandardCharsets.UTF_8));
+        return httpPost;
+    }
+
     public static HttpPost getHttpPost(String endpointUrl, int timeoutMs, Map<String, String> headerMap, ObjectNode jsonBody) {
 
         // Configure timeout
@@ -30,6 +45,17 @@ public final class HttpClientUtil {
                 .setSocketTimeout(timeoutMs)
                 .build();
         return getHttpPost(endpointUrl, requestConfig, headerMap, jsonBody);
+    }
+
+    public static HttpPost getHttpPost(String endpointUrl, int timeoutMs, Map<String, String> headerMap) {
+
+        // Configure timeout
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectTimeout(timeoutMs)
+                .setConnectionRequestTimeout(timeoutMs)
+                .setSocketTimeout(timeoutMs)
+                .build();
+        return getHttpPost(endpointUrl, requestConfig, headerMap, null);
     }
 
     public static HttpGet getHttpGet(String endpointUrl, RequestConfig requestConfig, String accept, String token) {

@@ -1,7 +1,7 @@
 package gov.cms.esmd.bundlesubmission.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.cms.esmd.bundlesubmission.model.PreSignedURLResponse;
+import gov.cms.esmd.bundlesubmission.model.*;
 import gov.cms.esmd.common.model.ClientResponse;
 import gov.cms.esmd.common.util.*;
 import gov.cms.esmd.config.model.AppConfig;
@@ -14,7 +14,9 @@ import org.apache.http.util.EntityUtils;
 
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static gov.cms.esmd.common.util.HttpClientUtil.getHttpPost;
@@ -103,8 +105,6 @@ public class PreSignedURLAPIHandler {
                 }
             }
 
-            // Parse URL
-            ParsedUrl parsed = URLUtils.parseUrl(endpointURL);
 
             // -----------------------------
             // Build cURL
@@ -160,4 +160,53 @@ public class PreSignedURLAPIHandler {
         }
     }
 
+    /**
+     * -------------------------------
+     * processPreSignedURLResponse()
+     * --------------------------------
+     */
+    public List<PreSignedURLInfo> processPreSignedURLResponse(
+            PreSignedURLResponse preSignedURLAPIResponse) {
+
+
+        List<PreSignedURLInfo> resultList = new ArrayList<>();
+
+        if (preSignedURLAPIResponse.getParameter() != null) {
+            for (Parameter parameter : preSignedURLAPIResponse.getParameter()) {
+                if (parameter.getPart() != null) {
+                    PreSignedURLInfo info = new PreSignedURLInfo();
+                    resultList.add(info);
+
+                    for (Part part : parameter.getPart()) {
+                        if (part.getPart() != null) {
+                            for (Part2 partItem : part.getPart()) {
+
+                                if (partItem.getValueString() != null) {
+                                    info.setPartValueString(
+                                            new PartValueString(
+                                                    partItem.getName(),
+                                                    partItem.getValueString()
+                                            )
+                                    );
+                                }
+
+                                if (partItem.getValueUrl() != null) {
+                                    info.setPartValueUrl(
+                                            new PartValueUrl(
+                                                    partItem.getName(),
+                                                    partItem.getValueUrl()
+                                            )
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        log.info("PreSigned URL Info List: {}", JsonUtil.toJson(resultList));
+        return resultList;
+
+    }
 }

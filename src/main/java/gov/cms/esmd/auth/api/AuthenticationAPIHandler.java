@@ -58,7 +58,7 @@ public class AuthenticationAPIHandler {
 
 
             // Build http post request
-            HttpPost httpPost = getHttpPost(endpointUrl, timeoutMs, headerMap, null);
+            HttpPost httpPost = getHttpPost(endpointUrl, timeoutMs, headerMap);
 
             log.info("Token request (POST): {}", endpointUrl);
 

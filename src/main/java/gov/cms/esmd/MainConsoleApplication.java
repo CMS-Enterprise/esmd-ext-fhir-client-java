@@ -1,8 +1,10 @@
 package gov.cms.esmd;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.cms.esmd.auth.api.AuthenticationAPIHandler;
+import gov.cms.esmd.bundlesubmission.api.ClinicalDocumentUploadAPIHandler;
 import gov.cms.esmd.bundlesubmission.api.PreSignedURLAPIHandler;
 import gov.cms.esmd.common.util.GuidUtil;
 import gov.cms.esmd.config.model.AppConfig;
@@ -41,10 +43,22 @@ public class MainConsoleApplication {
                 }
 
                 log.info("Now Processing PreSignedURL request!");
-
-                var preSignedURL = new PreSignedURLAPIHandler(config.getAppSettings(), token.getResponse().getAccessToken()).getPreSignedURLAsync(commonSharedGuid);
+                var preSignedURLHandler = new PreSignedURLAPIHandler(config.getAppSettings(), token.getResponse().getAccessToken());
+                var preSignedURL = preSignedURLHandler.getPreSignedURLAsync(commonSharedGuid);
                 if (preSignedURL.isSuccess()) {
                     log.info("PreSignedURL Retrieved Success - {}", new ObjectMapper().writeValueAsString(preSignedURL.getResponse()));
+                    var urlList = preSignedURLHandler.processPreSignedURLResponse(preSignedURL.getResponse());
+                    var clinicalDocumentUploadHandler = new ClinicalDocumentUploadAPIHandler(config.getAppSettings(), token.getResponse().getAccessToken());
+                    urlList.forEach(url -> {
+
+                        var uploadDocumentResponse = clinicalDocumentUploadHandler.uploadClinicalDocument(url.getPartValueUrl().getValueUrl(), url.getPartValueString().getValueString());
+                        try {
+                            log.info("upload document response - {}", new ObjectMapper().writeValueAsString(uploadDocumentResponse.getResponse()));
+                        } catch (JsonProcessingException e) {
+                            throw new RuntimeException(e);
+                        }
+
+                    });
                 } else {
                     log.error("PreSignedURL Retrieval Failed - {}", preSignedURL.getError());
                 }
