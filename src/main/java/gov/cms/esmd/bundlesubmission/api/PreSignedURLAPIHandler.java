@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.cms.esmd.bundlesubmission.model.*;
 import gov.cms.esmd.common.model.ClientResponse;
 import gov.cms.esmd.common.util.*;
-import gov.cms.esmd.config.model.AppConfig;
+import gov.cms.esmd.config.model.AppConfigJackson;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -23,12 +23,12 @@ import static gov.cms.esmd.common.util.HttpClientUtil.getHttpPost;
 
 @Slf4j
 public class PreSignedURLAPIHandler {
-    private final AppConfig.AppSettings.PresignedURLAPI settings;
-    private final AppConfig.AppSettings appSettings;
+    private final AppConfigJackson.AppSettings.PresignedURLAPI settings;
+    private final AppConfigJackson.AppSettings appSettings;
     private final String token;
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public PreSignedURLAPIHandler(AppConfig.AppSettings appSettings, String token) {
+    public PreSignedURLAPIHandler(AppConfigJackson.AppSettings appSettings, String token) {
         this.appSettings = appSettings;
         this.settings = appSettings.getPresignedURLAPI();
         this.token = token;
@@ -49,7 +49,7 @@ public class PreSignedURLAPIHandler {
             headers.put("Accept", accept);
             headers.put("Authorization", "Bearer " + this.token);
 
-            AppConfig.AppSettings.PresignedURLAPI.Request request = settings.getRequest();
+            AppConfigJackson.AppSettings.PresignedURLAPI.Request request = settings.getRequest();
 
             // Assign ID
             if (request.getId() == null && guidId == null) {
@@ -59,8 +59,8 @@ public class PreSignedURLAPIHandler {
             }
 
             String fileName = "";
-            AppConfig.AppSettings.PresignedURLAPI.Request.Parameter.Part contentMD5Part = null;
-            AppConfig.AppSettings.PresignedURLAPI.Request.Parameter.Part fileSizePart = null;
+            AppConfigJackson.AppSettings.PresignedURLAPI.Request.Parameter.Part contentMD5Part = null;
+            AppConfigJackson.AppSettings.PresignedURLAPI.Request.Parameter.Part fileSizePart = null;
 
             // Process request parameters
             if (request.getParameter() != null) {

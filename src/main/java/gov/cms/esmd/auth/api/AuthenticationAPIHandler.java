@@ -6,9 +6,8 @@ import gov.cms.esmd.common.model.ClientResponse;
 import gov.cms.esmd.common.util.CurlUtil;
 import gov.cms.esmd.common.util.DataFileWriterUtils;
 import gov.cms.esmd.common.util.GuidUtil;
-import gov.cms.esmd.config.model.AppConfig;
+import gov.cms.esmd.config.model.AppConfigJackson;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -25,13 +24,13 @@ import static gov.cms.esmd.common.util.HttpClientUtil.getHttpPost;
 public class AuthenticationAPIHandler {
 
 
-    private final AppConfig.AppSettings appSettings;
-    private final AppConfig.AppSettings.AuthenticationAPI authenticationAPISettings;
+    private final AppConfigJackson.AppSettings appSettings;
+    private final AppConfigJackson.AppSettings.AuthenticationAPI authenticationAPISettings;
     private Token cachedToken;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
 
-    public AuthenticationAPIHandler(AppConfig.AppSettings appSettings) {
+    public AuthenticationAPIHandler(AppConfigJackson.AppSettings appSettings) {
         this.appSettings = appSettings;
         this.authenticationAPISettings = appSettings.getAuthenticationAPI();
     }

@@ -3,8 +3,8 @@ package gov.cms.esmd.notification;
 
 import gov.cms.esmd.auth.api.AuthenticationAPIHandler;
 
-import gov.cms.esmd.config.YamlConfigLoader;
-import gov.cms.esmd.config.model.AppConfig;
+import gov.cms.esmd.config.YamlConfigLoaderJackson;
+import gov.cms.esmd.config.model.AppConfigJackson;
 import gov.cms.esmd.notification.api.NotificationAPIHandler;
 
 import org.junit.jupiter.api.*;
@@ -23,8 +23,8 @@ class NotificationAPIHandlerTest {
     @Test
     void test_success() throws Exception {
 
-        YamlConfigLoader loader = new YamlConfigLoader("app-settings-config.yml");
-        AppConfig config = loader.getConfig();
+        YamlConfigLoaderJackson loader = new YamlConfigLoaderJackson("app-settings-config.yml");
+        AppConfigJackson config = loader.getConfig();
         var success = false;
 
 
@@ -45,8 +45,8 @@ class NotificationAPIHandlerTest {
     @Test
     void test_failure() throws Exception {
 
-        YamlConfigLoader loader = new YamlConfigLoader("app-settings-config.yml");
-        AppConfig config = loader.getConfig();
+        YamlConfigLoaderJackson loader = new YamlConfigLoaderJackson("app-settings-config.yml");
+        AppConfigJackson config = loader.getConfig();
         var success = true;
 
 

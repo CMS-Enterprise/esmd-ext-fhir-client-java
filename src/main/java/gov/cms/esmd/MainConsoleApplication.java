@@ -4,11 +4,11 @@ package gov.cms.esmd;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.cms.esmd.auth.api.AuthenticationAPIHandler;
+import gov.cms.esmd.bundlesubmission.api.BundlePractitionerAPIHandler;
 import gov.cms.esmd.bundlesubmission.api.ClinicalDocumentUploadAPIHandler;
 import gov.cms.esmd.bundlesubmission.api.PreSignedURLAPIHandler;
 import gov.cms.esmd.common.util.GuidUtil;
-import gov.cms.esmd.config.model.AppConfig;
-import gov.cms.esmd.config.YamlConfigLoader;
+import gov.cms.esmd.config.YamlConfigLoaderJackson;
 import gov.cms.esmd.notification.api.NotificationAPIHandler;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,8 +17,8 @@ public class MainConsoleApplication {
 
     public static void main(String[] args) {
         try {
-            YamlConfigLoader loader = new YamlConfigLoader("app-settings-config.yml");
-            AppConfig config = loader.getConfig();
+            var loader = new YamlConfigLoaderJackson("app-settings-config-jackson.yml");
+            var config = loader.getConfig();
 
             // Print some properties to verify
             log.info("HTTP Timeout: {}", config.getAppSettings().getHttpClientRequestTimeOutSeconds());
@@ -34,6 +34,7 @@ public class MainConsoleApplication {
             var token = new AuthenticationAPIHandler(config.getAppSettings()).getToken();
             if (token.isSuccess()) {
                 log.info("token value is - {}", token.getResponse().getAccessToken());
+
                 log.info("Now Processing Notification request!");
                 var notification = new NotificationAPIHandler(config.getAppSettings(), token.getResponse().getAccessToken()).getNotifications();
                 if (notification.isSuccess()) {
@@ -63,8 +64,16 @@ public class MainConsoleApplication {
                     log.error("PreSignedURL Retrieval Failed - {}", preSignedURL.getError());
                 }
 
-            } else {
-                log.error("Token failed {}", token.getError());
+
+                log.info("Now Processing Bundle Practitioner request!");
+                var bundlePractitionerHandler = new BundlePractitionerAPIHandler(config.getAppSettings(), token.getResponse().getAccessToken());
+                var bundlePractitioner = bundlePractitionerHandler.processBundlePractitionerRequest(commonSharedGuid);
+                if (bundlePractitioner.isSuccess()) {
+                    log.info("Successfully process bundlePractitioner  - {}", new ObjectMapper().writeValueAsString(bundlePractitioner.getResponse()));
+                } else {
+                    log.error("Bundle Practitioner Failed - {}", bundlePractitioner.getError());
+                }
+
             }
 
 
