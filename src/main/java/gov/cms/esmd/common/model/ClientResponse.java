@@ -1,5 +1,10 @@
 package gov.cms.esmd.common.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class ClientResponse<T> {
     private T response;
     private boolean success;
@@ -14,27 +19,4 @@ public class ClientResponse<T> {
         this.error = error;
     }
 
-    public T getResponse() {
-        return response;
-    }
-
-    public void setResponse(T response) {
-        this.response = response;
-    }
-
-    public boolean isSuccess() {
-        return success;
-    }
-
-    public void setSuccess(boolean success) {
-        this.success = success;
-    }
-
-    public String getError() {
-        return error;
-    }
-
-    public void setError(String error) {
-        this.error = error;
-    }
 }

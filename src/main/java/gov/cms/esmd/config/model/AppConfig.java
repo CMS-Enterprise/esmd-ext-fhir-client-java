@@ -1,5 +1,7 @@
 package gov.cms.esmd.config.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -51,12 +53,16 @@ public class AppConfig {
             private Request request;
 
             @Data @NoArgsConstructor @AllArgsConstructor
+            @JsonInclude(JsonInclude.Include.NON_NULL)
+            @JsonIgnoreProperties(ignoreUnknown = true)
             public static class Request {
                 private String resourceType;
                 private String id;
                 private List<Parameter> parameter;
 
                 @Data @NoArgsConstructor @AllArgsConstructor
+                @JsonInclude(JsonInclude.Include.NON_NULL)
+                @JsonIgnoreProperties(ignoreUnknown = true)
                 public static class Parameter {
                     private String name;
                     private String valueString;

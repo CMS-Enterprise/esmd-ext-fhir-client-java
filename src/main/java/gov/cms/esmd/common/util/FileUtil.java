@@ -3,6 +3,9 @@ package gov.cms.esmd.common.util;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public final class FileUtil {
 
@@ -34,5 +37,34 @@ public final class FileUtil {
         }
 
     }
+    public static String getFullFilePath(String folder, String fileName) {
+        if (folder == null || folder.isEmpty() ||
+                fileName == null || fileName.isEmpty()) {
+            throw new IllegalArgumentException("Folder and fileName are required.");
+        }
+
+        Path fullPath = Paths.get(folder, fileName).toAbsolutePath();
+        return fullPath.toString();
+    }
+
+    /**
+     * Gets the file size in MB (rounded to two decimals).
+     */
+    public static double getFileSizeInMB(String filePath) {
+        Path path = Paths.get(filePath);
+
+        if (!Files.exists(path)) {
+            throw new RuntimeException("File not found: " + filePath);
+        }
+
+        try {
+            long bytes = Files.size(path);
+            double mb = bytes / (1024.0 * 1024.0);
+            return Math.round(mb * 100.0) / 100.0; // round to 2 decimals
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to read file: " + filePath, e);
+        }
+    }
+
 }
 
