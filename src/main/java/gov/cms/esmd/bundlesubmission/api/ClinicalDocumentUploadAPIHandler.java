@@ -4,7 +4,7 @@ package gov.cms.esmd.bundlesubmission.api;
 import gov.cms.esmd.bundlesubmission.model.UploadClinicalDocumentResponse;
 import gov.cms.esmd.common.model.ClientResponse;
 import gov.cms.esmd.common.util.*;
-import gov.cms.esmd.config.model.AppConfig;
+import gov.cms.esmd.config.model.AppConfigJackson;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -24,12 +24,12 @@ import static gov.cms.esmd.common.util.HttpClientUtil.getHttpPost;
 @Slf4j
 public class ClinicalDocumentUploadAPIHandler {
 
-    private final AppConfig.AppSettings.UploadClinicalDocumentAPI uploadSettings;
-    private final AppConfig.AppSettings appSettings;
+    private final AppConfigJackson.AppSettings.UploadClinicalDocumentAPI uploadSettings;
+    private final AppConfigJackson.AppSettings appSettings;
     private final String token;
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public ClinicalDocumentUploadAPIHandler(AppConfig.AppSettings appSettings, String token) {
+    public ClinicalDocumentUploadAPIHandler(AppConfigJackson.AppSettings appSettings, String token) {
         this.appSettings = appSettings;
         this.uploadSettings = appSettings.getUploadClinicalDocumentAPI();
         this.token = token;
@@ -68,7 +68,6 @@ public class ClinicalDocumentUploadAPIHandler {
             headers.put("Content-Type", uploadSettings.getContentType());
             headers.put("Accept", "*/*");
             headers.put("Authorization", "Bearer " + token);
-            //headers.put("Content-Length", String.valueOf(xml.getBytes(StandardCharsets.UTF_8).length));
             headers.put("Content-MD5", base64MD5);
 
 

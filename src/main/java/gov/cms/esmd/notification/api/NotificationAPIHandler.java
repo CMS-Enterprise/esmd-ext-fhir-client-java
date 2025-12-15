@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.cms.esmd.common.model.ClientResponse;
 
 import gov.cms.esmd.common.util.*;
-import gov.cms.esmd.config.model.AppConfig;
+import gov.cms.esmd.config.model.AppConfigJackson;
 import gov.cms.esmd.notification.model.NotificationResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -21,13 +21,13 @@ import java.util.Map;
 @Slf4j
 public class NotificationAPIHandler {
 
-    private final AppConfig.AppSettings.NotificationRetrievalAPI settings;
-    private final AppConfig.AppSettings appSettings;
+    private final AppConfigJackson.AppSettings.NotificationRetrievalAPI settings;
+    private final AppConfigJackson.AppSettings appSettings;
     private final String token;
     private final ObjectMapper mapper = new ObjectMapper();
 
 
-    public NotificationAPIHandler(AppConfig.AppSettings appSettings, String token) {
+    public NotificationAPIHandler(AppConfigJackson.AppSettings appSettings, String token) {
         this.settings = appSettings.getNotificationRetrievalAPI();
         this.appSettings = appSettings;
         this.token = token;
