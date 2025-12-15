@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.cms.esmd.auth.api.AuthenticationAPIHandler;
 import gov.cms.esmd.bundlesubmission.api.BundlePractitionerAPIHandler;
+import gov.cms.esmd.bundlesubmission.api.BundleSubmissionAPIHandler;
 import gov.cms.esmd.bundlesubmission.api.ClinicalDocumentUploadAPIHandler;
 import gov.cms.esmd.bundlesubmission.api.PreSignedURLAPIHandler;
 import gov.cms.esmd.common.util.GuidUtil;
@@ -54,7 +55,19 @@ public class MainConsoleApplication {
 
                         var uploadDocumentResponse = clinicalDocumentUploadHandler.uploadClinicalDocument(url.getPartValueUrl().getValueUrl(), url.getPartValueString().getValueString());
                         try {
-                            log.info("upload document response - {}", new ObjectMapper().writeValueAsString(uploadDocumentResponse.getResponse()));
+
+                            if (uploadDocumentResponse.isSuccess()) {
+                                log.info("upload document response success - {}", new ObjectMapper().writeValueAsString(uploadDocumentResponse.getResponse()));
+                                var bundleSubmissionAPIHandler = new BundleSubmissionAPIHandler(config.getAppSettings(), token.getResponse().getAccessToken());
+                                var bundleSubmissionResponse = bundleSubmissionAPIHandler.processBundleSubmissionRequest(uploadDocumentResponse.getResponse(), commonSharedGuid);
+                                if (bundleSubmissionResponse.isSuccess()) {
+                                    log.info("processing bundleSubmission success - {}", new ObjectMapper().writeValueAsString(bundleSubmissionResponse.getResponse()));
+                                } else {
+                                    log.error("processing bundleSubmission Failed - {}", bundleSubmissionResponse.getError());
+                                }
+                            } else {
+                                log.error("upload document Failed - {}", uploadDocumentResponse.getError());
+                            }
                         } catch (JsonProcessingException e) {
                             throw new RuntimeException(e);
                         }

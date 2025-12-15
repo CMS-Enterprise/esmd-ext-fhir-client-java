@@ -66,5 +66,16 @@ public final class FileUtil {
         }
     }
 
+    public static long getFileSizeBytes(String filePath) {
+        File file = new File(filePath);
+
+        if (!file.exists()) {
+            throw new RuntimeException("File not found: " + filePath);
+        }
+
+        return file.length();
+    }
+
+
 }
 
