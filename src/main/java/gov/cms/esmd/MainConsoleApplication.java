@@ -10,6 +10,7 @@ import gov.cms.esmd.bundlesubmission.api.ClinicalDocumentUploadAPIHandler;
 import gov.cms.esmd.bundlesubmission.api.PreSignedURLAPIHandler;
 import gov.cms.esmd.common.util.GuidUtil;
 import gov.cms.esmd.config.YamlConfigLoaderJackson;
+import gov.cms.esmd.documentretrieval.api.BinaryClientAPIHandler;
 import gov.cms.esmd.notification.api.NotificationAPIHandler;
 import lombok.extern.slf4j.Slf4j;
 
@@ -86,6 +87,16 @@ public class MainConsoleApplication {
                 } else {
                     log.error("Bundle Practitioner Failed - {}", bundlePractitioner.getError());
                 }
+
+                log.info("Now Processing Binary Client request!");
+                var binaryClientHandler = new BinaryClientAPIHandler(config.getAppSettings(), token.getResponse().getAccessToken());
+                var binaryClientResponse = binaryClientHandler.getBinaryFileData(commonSharedGuid);
+                if (binaryClientResponse.isSuccess()) {
+                    log.info("Successfully process Binary client Request  - {}", new ObjectMapper().writeValueAsString(binaryClientResponse.getResponse()));
+                } else {
+                    log.error("Binary Client Request processing Failed - {}", binaryClientResponse.getError());
+                }
+
 
             }
 
