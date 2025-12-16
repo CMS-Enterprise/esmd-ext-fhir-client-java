@@ -1,91 +1,127 @@
 package gov.cms.esmd.documentretrieval.api;
 
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.cms.esmd.utilities.bean.DeliveryConfirmationAPI;
-import gov.cms.esmd.documentretrieval.bean.DeliveryConfirmationAPIResponse;
-import gov.cms.esmd.documentretrieval.bean.DeliveryConfirmationAPIFailedResponse;
-import lombok.RequiredArgsConstructor;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import gov.cms.esmd.common.model.ClientResponse;
+import gov.cms.esmd.common.util.CurlUtil;
+import gov.cms.esmd.common.util.DataFileWriterUtils;
+import gov.cms.esmd.common.util.GuidUtil;
+import gov.cms.esmd.config.model.AppConfigJackson;
+
+import gov.cms.esmd.documentretrieval.model.DeliveryConfirmationResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.*;
+import java.util.HashMap;
+import java.util.Map;
+
+import static gov.cms.esmd.common.util.HttpClientUtil.getHttpPost;
 
 @Slf4j
-@RequiredArgsConstructor
 public class DeliveryConfirmationAPIHandler {
 
-    private final CloseableHttpClient httpClient;
-    private final ObjectMapper objectMapper;
+    private final AppConfigJackson.AppSettings appSettings;
+    private final AppConfigJackson.AppSettings.DeliveryConfirmationAPI deliveryConfirmationAPISettings;
+    private final String token;
 
-    public DeliveryConfirmationAPIHandler(CloseableHttpClient httpClient) {
-        this.httpClient = httpClient;
-        this.objectMapper = new ObjectMapper();
-        // Configure camel case and pretty printing like C# DefaultOptions
-        objectMapper.setPropertyNamingStrategy(
-                com.fasterxml.jackson.databind.PropertyNamingStrategies.LOWER_CAMEL_CASE);
-        objectMapper.writerWithDefaultPrettyPrinter();
+    private final ObjectMapper mapper =
+            new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+
+    public DeliveryConfirmationAPIHandler(AppConfigJackson.AppSettings appSettings, String token) {
+        this.appSettings = appSettings;
+        this.deliveryConfirmationAPISettings = appSettings.getDeliveryConfirmationAPI();
+        this.token = token;
     }
 
-    public DeliveryConfirmationAPIHandlerResult processDeliveryConfirmation(
-            String token,
-            DeliveryConfirmationAPI deliveryConfirmationAPI) throws Exception {
-
-        // Prepare HTTP POST
-        HttpPost postRequest = new HttpPost(deliveryConfirmationAPI.getEndpointURL());
-        postRequest.setHeader("Authorization", "Bearer " + token);
-        postRequest.setHeader("Content-Type", deliveryConfirmationAPI.getContentType());
-        postRequest.setEntity(new StringEntity(
-                objectMapper.writeValueAsString(deliveryConfirmationAPI.getRequest()),
-                StandardCharsets.UTF_8
-        ));
-
-        log.info("Request: {}", objectMapper.writeValueAsString(deliveryConfirmationAPI.getRequest()));
-
-        // Handle timeout
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        Future<DeliveryConfirmationAPIHandlerResult> future = executor.submit(() -> {
-            try (CloseableHttpResponse response = httpClient.execute(postRequest)) {
-                String jsonContent = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-                int statusCode = response.getStatusLine().getStatusCode();
-
-                if (statusCode < 200 || statusCode >= 300) {
-                    log.error("Http Response Code: {}", statusCode);
-                    log.error("Http Response Content: {}", jsonContent);
-                    DeliveryConfirmationAPIFailedResponse failedResponse =
-                            objectMapper.readValue(jsonContent, DeliveryConfirmationAPIFailedResponse.class);
-                    return new DeliveryConfirmationAPIHandlerResult(null, failedResponse);
-                } else {
-                    DeliveryConfirmationAPIResponse successResponse =
-                            objectMapper.readValue(jsonContent, DeliveryConfirmationAPIResponse.class);
-                    return new DeliveryConfirmationAPIHandlerResult(successResponse, null);
-                }
-            }
-        });
+    /**
+     *
+     * processDeliveryConfirmation()
+     */
+    public ClientResponse<DeliveryConfirmationResponse> processDeliveryConfirmation() {
+        DataFileWriterUtils fileWriter =
+                new DataFileWriterUtils(appSettings.getBaseFileLocationFolder());
 
         try {
-            // Timeout
-            return future.get(
-                    (long) deliveryConfirmationAPI.getHttpClientRequestTimeOutSeconds(),
-                    TimeUnit.SECONDS
+            String endpointUrl = deliveryConfirmationAPISettings.getEndpointURL();
+            int timeoutMs =
+                    (int) deliveryConfirmationAPISettings.getHttpClientRequestTimeOutSeconds() * 1000;
+
+            // ---------------------- Headers -----------------------
+            Map<String, String> headers = new HashMap<>();
+            headers.put("Content-Type", deliveryConfirmationAPISettings.getContentType());
+            headers.put("Accept", deliveryConfirmationAPISettings.getAccept());
+            headers.put("Authorization", "Bearer " + token);
+
+            Object request = deliveryConfirmationAPISettings.getRequest();
+
+            String requestJson = mapper.writeValueAsString(request);
+
+            // ---------------------- Write request -----------------
+            fileWriter.writeJson(
+                    "delivery-confirmation-java",
+                    "request-" + GuidUtil.generateGuid(),
+                    requestJson
             );
-        } catch (TimeoutException e) {
-            future.cancel(true);
-            log.error("Request timed out after {} seconds", deliveryConfirmationAPI.getHttpClientRequestTimeOutSeconds());
-            throw e;
-        } finally {
-            executor.shutdownNow();
+
+            // ---------------------- Build POST --------------------
+            HttpPost httpPost = getHttpPost(endpointUrl, timeoutMs, headers, requestJson);
+
+            log.info("DeliveryConfirmation request (POST): {}", endpointUrl);
+
+            // ---------------------- cURL --------------------------
+            String curlCommand =
+                    CurlUtil.toCurl(endpointUrl, null, "POST", headers, requestJson, null);
+
+            log.info("Outgoing cURL: {}", curlCommand);
+            fileWriter.writeText("delivery-confirmation-java", "curl", curlCommand);
+
+            // ---------------------- Execute -----------------------
+            try (CloseableHttpClient httpClient = HttpClients.createDefault();
+                 CloseableHttpResponse response = httpClient.execute(httpPost)) {
+
+                int statusCode = response.getStatusLine().getStatusCode();
+                String body = response.getEntity() != null
+                        ? EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8)
+                        : null;
+
+                if (statusCode < 200 || statusCode >= 300) {
+                    log.error("Failed processing DeliveryConfirmation API! Status: {}", statusCode);
+
+                    fileWriter.writeJson(
+                            "delivery-confirmation-java",
+                            "response-failed-" + GuidUtil.generateGuid(),
+                            body
+                    );
+
+                    return new ClientResponse<>(null, false, body);
+                }
+
+                // ---------------------- Success ---------------------
+                DeliveryConfirmationResponse successResponse =
+                        mapper.readValue(body, DeliveryConfirmationResponse.class);
+
+                fileWriter.writeJson(
+                        "delivery-confirmation-java",
+                        "response-success-" + GuidUtil.generateGuid(),
+                        successResponse
+                );
+
+                return new ClientResponse<>(successResponse, true, null);
+            }
+
+        } catch (Exception e) {
+            log.error("Exception while processing DeliveryConfirmation API request", e);
+            return new ClientResponse<>(
+                    null,
+                    false,
+                    e.getMessage() != null ? e.getMessage() : e.getCause().getMessage()
+            );
         }
-    }
-
-
-    @lombok.Value
-    public static class DeliveryConfirmationAPIHandlerResult {
-        DeliveryConfirmationAPIResponse success;
-        DeliveryConfirmationAPIFailedResponse failed;
     }
 }

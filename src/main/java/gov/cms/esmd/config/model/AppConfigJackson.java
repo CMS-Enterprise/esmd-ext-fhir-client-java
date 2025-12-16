@@ -493,16 +493,8 @@ public class AppConfigJackson {
                     @JsonInclude(JsonInclude.Include.NON_NULL)
                     @JsonIgnoreProperties(ignoreUnknown = true)
                     public static class Item {
-                        private Reference reference;
+                        private String reference;
 
-                        @Data
-                        @NoArgsConstructor
-                        @AllArgsConstructor
-                        @JsonInclude(JsonInclude.Include.NON_NULL)
-                        @JsonIgnoreProperties(ignoreUnknown = true)
-                        public static class Reference {
-                            private String reference;
-                        }
                     }
                 }
             }

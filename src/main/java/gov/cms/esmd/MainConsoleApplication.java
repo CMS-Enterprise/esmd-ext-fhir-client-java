@@ -11,6 +11,7 @@ import gov.cms.esmd.bundlesubmission.api.PreSignedURLAPIHandler;
 import gov.cms.esmd.common.util.GuidUtil;
 import gov.cms.esmd.config.YamlConfigLoaderJackson;
 import gov.cms.esmd.documentretrieval.api.BinaryClientAPIHandler;
+import gov.cms.esmd.documentretrieval.api.DeliveryConfirmationAPIHandler;
 import gov.cms.esmd.notification.api.NotificationAPIHandler;
 import lombok.extern.slf4j.Slf4j;
 
@@ -92,9 +93,18 @@ public class MainConsoleApplication {
                 var binaryClientHandler = new BinaryClientAPIHandler(config.getAppSettings(), token.getResponse().getAccessToken());
                 var binaryClientResponse = binaryClientHandler.getBinaryFileData(commonSharedGuid);
                 if (binaryClientResponse.isSuccess()) {
-                    log.info("Successfully process Binary client Request  - {}", new ObjectMapper().writeValueAsString(binaryClientResponse.getResponse()));
+                    log.info("Successfully processed Binary client Request  - {}", new ObjectMapper().writeValueAsString(binaryClientResponse.getResponse()));
                 } else {
                     log.error("Binary Client Request processing Failed - {}", binaryClientResponse.getError());
+                }
+
+                log.info("Now Processing Delivery Confirmation request!");
+                var deliveryConfirmationHandler = new DeliveryConfirmationAPIHandler(config.getAppSettings(), token.getResponse().getAccessToken());
+                var deliveryConfirmationResponse = deliveryConfirmationHandler.processDeliveryConfirmation();
+                if (deliveryConfirmationResponse.isSuccess()) {
+                    log.info("Successfully processed Delivery Confirmation Request  - {}", new ObjectMapper().writeValueAsString(deliveryConfirmationResponse.getResponse()));
+                } else {
+                    log.error("Delivery Confirmation Request processing Failed - {}", deliveryConfirmationResponse.getError());
                 }
 
 

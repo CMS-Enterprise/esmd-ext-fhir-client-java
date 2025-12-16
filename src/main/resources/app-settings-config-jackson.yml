@@ -165,7 +165,7 @@ appSettings:
   documentRetrievalAPI:
     endpointURL: "${endPointBaseUrl}/api/esmdf/v1/fhir/DocumentReference"
     accept: "application/fhir+json"
-    httpClientRequestTimeOutSeconds: 2.0
+    httpClientRequestTimeOutSeconds: 4.0
     requestParameters:
       - name: "transaction-status-type"
         value: "ready-to-download"
@@ -178,7 +178,7 @@ appSettings:
     endpointURL: "${endPointBaseUrl}/api/esmdf/v1/fhir/List"
     accept: "application/fhir+json"
     contentType: "application/fhir+json"
-    httpClientRequestTimeOutSeconds: 2.0
+    httpClientRequestTimeOutSeconds: 4.0
     request:
       resourceType: "List"
       id: "0187157c-da3f-4a74-b687-423bab362754"
@@ -266,7 +266,7 @@ appSettings:
     endpointURL: "${endPointBaseUrl}/api/esmdf/v1/fhir/Binary/{id}"
     accept: "application/fhir+json"
     fileNameId: "TXE0007232564EC_20250305105429_2"
-    httpClientRequestTimeOutSeconds: 2.0
+    httpClientRequestTimeOutSeconds: 4.0
 
   bundlePractitionerAPI:
     endpointURL: "${endPointBaseUrl}/api/esmdf/v1/fhir"
