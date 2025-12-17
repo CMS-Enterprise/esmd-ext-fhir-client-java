@@ -5,10 +5,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.cms.esmd.auth.api.AuthenticationAPIHandler;
 import gov.cms.esmd.bundlesubmission.api.BundlePractitionerAPIHandler;
+import gov.cms.esmd.bundlesubmission.api.BundleSubmissionAPIHandler;
 import gov.cms.esmd.bundlesubmission.api.ClinicalDocumentUploadAPIHandler;
 import gov.cms.esmd.bundlesubmission.api.PreSignedURLAPIHandler;
 import gov.cms.esmd.common.util.GuidUtil;
 import gov.cms.esmd.config.YamlConfigLoaderJackson;
+import gov.cms.esmd.documentretrieval.api.BinaryClientAPIHandler;
+import gov.cms.esmd.documentretrieval.api.DeliveryConfirmationAPIHandler;
 import gov.cms.esmd.notification.api.NotificationAPIHandler;
 import lombok.extern.slf4j.Slf4j;
 
@@ -54,7 +57,19 @@ public class MainConsoleApplication {
 
                         var uploadDocumentResponse = clinicalDocumentUploadHandler.uploadClinicalDocument(url.getPartValueUrl().getValueUrl(), url.getPartValueString().getValueString());
                         try {
-                            log.info("upload document response - {}", new ObjectMapper().writeValueAsString(uploadDocumentResponse.getResponse()));
+
+                            if (uploadDocumentResponse.isSuccess()) {
+                                log.info("upload document response success - {}", new ObjectMapper().writeValueAsString(uploadDocumentResponse.getResponse()));
+                                var bundleSubmissionAPIHandler = new BundleSubmissionAPIHandler(config.getAppSettings(), token.getResponse().getAccessToken());
+                                var bundleSubmissionResponse = bundleSubmissionAPIHandler.processBundleSubmissionRequest(uploadDocumentResponse.getResponse(), commonSharedGuid);
+                                if (bundleSubmissionResponse.isSuccess()) {
+                                    log.info("processing bundleSubmission success - {}", new ObjectMapper().writeValueAsString(bundleSubmissionResponse.getResponse()));
+                                } else {
+                                    log.error("processing bundleSubmission Failed - {}", bundleSubmissionResponse.getError());
+                                }
+                            } else {
+                                log.error("upload document Failed - {}", uploadDocumentResponse.getError());
+                            }
                         } catch (JsonProcessingException e) {
                             throw new RuntimeException(e);
                         }
@@ -73,6 +88,25 @@ public class MainConsoleApplication {
                 } else {
                     log.error("Bundle Practitioner Failed - {}", bundlePractitioner.getError());
                 }
+
+                log.info("Now Processing Binary Client request!");
+                var binaryClientHandler = new BinaryClientAPIHandler(config.getAppSettings(), token.getResponse().getAccessToken());
+                var binaryClientResponse = binaryClientHandler.getBinaryFileData(commonSharedGuid);
+                if (binaryClientResponse.isSuccess()) {
+                    log.info("Successfully processed Binary client Request  - {}", new ObjectMapper().writeValueAsString(binaryClientResponse.getResponse()));
+                } else {
+                    log.error("Binary Client Request processing Failed - {}", binaryClientResponse.getError());
+                }
+
+                log.info("Now Processing Delivery Confirmation request!");
+                var deliveryConfirmationHandler = new DeliveryConfirmationAPIHandler(config.getAppSettings(), token.getResponse().getAccessToken());
+                var deliveryConfirmationResponse = deliveryConfirmationHandler.processDeliveryConfirmation();
+                if (deliveryConfirmationResponse.isSuccess()) {
+                    log.info("Successfully processed Delivery Confirmation Request  - {}", new ObjectMapper().writeValueAsString(deliveryConfirmationResponse.getResponse()));
+                } else {
+                    log.error("Delivery Confirmation Request processing Failed - {}", deliveryConfirmationResponse.getError());
+                }
+
 
             }
 

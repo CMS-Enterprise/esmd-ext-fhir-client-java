@@ -121,18 +121,23 @@ public class AppConfigJackson {
         @JsonInclude(JsonInclude.Include.NON_NULL)
         @JsonIgnoreProperties(ignoreUnknown = true)
         public static class BundleSubmissionAPI {
+
             private String endpointURL;
             private String contentType;
             private String accept;
             private double httpClientRequestTimeOutSeconds;
             private Request request;
 
+            // =====================================================
+            // Bundle Request
+            // =====================================================
             @Data
             @NoArgsConstructor
             @AllArgsConstructor
             @JsonInclude(JsonInclude.Include.NON_NULL)
             @JsonIgnoreProperties(ignoreUnknown = true)
             public static class Request {
+
                 private String resourceType;
                 private String id;
                 private Meta meta;
@@ -140,6 +145,7 @@ public class AppConfigJackson {
                 private String timestamp;
                 private List<Entry> entry;
 
+                // ---------------- Meta ----------------
                 @Data
                 @NoArgsConstructor
                 @AllArgsConstructor
@@ -161,34 +167,184 @@ public class AppConfigJackson {
                     }
                 }
 
+                // ---------------- Entry ----------------
                 @Data
                 @NoArgsConstructor
                 @AllArgsConstructor
                 @JsonInclude(JsonInclude.Include.NON_NULL)
                 @JsonIgnoreProperties(ignoreUnknown = true)
                 public static class Entry {
-                    private Item item;
 
+                    private String fullUrl;
+                    private Resource resource;
+                    private RequestAction request;
+
+                    // ---------- Resource ----------
                     @Data
                     @NoArgsConstructor
                     @AllArgsConstructor
                     @JsonInclude(JsonInclude.Include.NON_NULL)
                     @JsonIgnoreProperties(ignoreUnknown = true)
-                    public static class Item {
-                        private Reference reference;
+                    public static class Resource {
+
+                        private String resourceType;
+                        private String id;
+                        private Meta meta;
+
+                        // ---- List ----
+                        private List<Extension> extension;
+                        private String status;
+                        private String mode;
+                        private String title;
+                        private String date;
+                        private List<ListEntry> entry;
+
+                        // ---- DocumentReference ----
+                        private List<Identifier> identifier;
+                        private List<Category> category;
+                        private List<SecurityLabel> securityLabel;
+                        private List<Content> content;
+                        private Context context;
+
+                        // ---------- Extension ----------
+                        @Data
+                        @NoArgsConstructor
+                        @AllArgsConstructor
+                        @JsonInclude(JsonInclude.Include.NON_NULL)
+                        @JsonIgnoreProperties(ignoreUnknown = true)
+                        public static class Extension {
+                            private String url;
+                            private String valueCode;
+                            private String valueString;
+                        }
+
+                        // ---------- List Entry ----------
+                        @Data
+                        @NoArgsConstructor
+                        @AllArgsConstructor
+                        @JsonInclude(JsonInclude.Include.NON_NULL)
+                        @JsonIgnoreProperties(ignoreUnknown = true)
+                        public static class ListEntry {
+                            private Item item;
+
+                            @Data
+                            @NoArgsConstructor
+                            @AllArgsConstructor
+                            @JsonInclude(JsonInclude.Include.NON_NULL)
+                            @JsonIgnoreProperties(ignoreUnknown = true)
+                            public static class Item {
+                                private String reference;
+                            }
+                        }
+
+                        // ---------- DocumentReference ----------
+                        @Data
+                        @NoArgsConstructor
+                        @AllArgsConstructor
+                        @JsonInclude(JsonInclude.Include.NON_NULL)
+                        @JsonIgnoreProperties(ignoreUnknown = true)
+                        public static class Identifier {
+                            private String system;
+                            private String value;
+                        }
 
                         @Data
                         @NoArgsConstructor
                         @AllArgsConstructor
                         @JsonInclude(JsonInclude.Include.NON_NULL)
                         @JsonIgnoreProperties(ignoreUnknown = true)
-                        public static class Reference {
-                            private String reference;
+                        public static class Category {
+                            private List<Coding> coding;
                         }
+
+                        @Data
+                        @NoArgsConstructor
+                        @AllArgsConstructor
+                        @JsonInclude(JsonInclude.Include.NON_NULL)
+                        @JsonIgnoreProperties(ignoreUnknown = true)
+                        public static class SecurityLabel {
+                            private List<Coding> coding;
+                        }
+
+                        @Data
+                        @NoArgsConstructor
+                        @AllArgsConstructor
+                        @JsonInclude(JsonInclude.Include.NON_NULL)
+                        @JsonIgnoreProperties(ignoreUnknown = true)
+                        public static class Coding {
+                            private String system;
+                            private String code;
+                            private String display;
+                        }
+
+                        @Data
+                        @NoArgsConstructor
+                        @AllArgsConstructor
+                        @JsonInclude(JsonInclude.Include.NON_NULL)
+                        @JsonIgnoreProperties(ignoreUnknown = true)
+                        public static class Content {
+                            private Attachment attachment;
+                            private Format format;
+                        }
+
+                        @Data
+                        @NoArgsConstructor
+                        @AllArgsConstructor
+                        @JsonInclude(JsonInclude.Include.NON_NULL)
+                        @JsonIgnoreProperties(ignoreUnknown = true)
+                        public static class Attachment {
+                            private String id;
+                            private String contentType;
+                            private String url;
+                            private Long size;
+                            private String hash;
+                            private String title;
+                            private String creation;
+                        }
+
+                        @Data
+                        @NoArgsConstructor
+                        @AllArgsConstructor
+                        @JsonInclude(JsonInclude.Include.NON_NULL)
+                        @JsonIgnoreProperties(ignoreUnknown = true)
+                        public static class Format {
+                            private String system;
+                            private String code;
+                        }
+
+                        @Data
+                        @NoArgsConstructor
+                        @AllArgsConstructor
+                        @JsonInclude(JsonInclude.Include.NON_NULL)
+                        @JsonIgnoreProperties(ignoreUnknown = true)
+                        public static class Context {
+                            private FacilityType facilityType;
+
+                            @Data
+                            @NoArgsConstructor
+                            @AllArgsConstructor
+                            @JsonInclude(JsonInclude.Include.NON_NULL)
+                            @JsonIgnoreProperties(ignoreUnknown = true)
+                            public static class FacilityType {
+                                private List<Coding> coding;
+                            }
+                        }
+                    }
+
+                    // ---------- RequestAction ----------
+                    @Data
+                    @NoArgsConstructor
+                    @AllArgsConstructor
+                    @JsonInclude(JsonInclude.Include.NON_NULL)
+                    @JsonIgnoreProperties(ignoreUnknown = true)
+                    public static class RequestAction {
+                        private String method;
+                        private String url;
                     }
                 }
             }
         }
+
 
         // --- Notification Retrieval API ---
         @Data
@@ -337,16 +493,8 @@ public class AppConfigJackson {
                     @JsonInclude(JsonInclude.Include.NON_NULL)
                     @JsonIgnoreProperties(ignoreUnknown = true)
                     public static class Item {
-                        private Reference reference;
+                        private String reference;
 
-                        @Data
-                        @NoArgsConstructor
-                        @AllArgsConstructor
-                        @JsonInclude(JsonInclude.Include.NON_NULL)
-                        @JsonIgnoreProperties(ignoreUnknown = true)
-                        public static class Reference {
-                            private String reference;
-                        }
                     }
                 }
             }
