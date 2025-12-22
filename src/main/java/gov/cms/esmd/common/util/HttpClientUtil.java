@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 
 import java.nio.charset.StandardCharsets;
@@ -76,6 +77,21 @@ public final class HttpClientUtil {
                 .build();
 
         return getHttpGet(endpointUrl, requestConfig, accept, token);
+    }
+
+    public static HttpPut getHttpPut(String endpointUrl, int timeoutMs, Map<String, String> headerMap, String content) {
+
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectTimeout(timeoutMs)
+                .setConnectionRequestTimeout(timeoutMs)
+                .setSocketTimeout(timeoutMs)
+                .build();
+
+        HttpPut httpPut = new HttpPut(endpointUrl);
+        httpPut.setConfig(requestConfig);
+        headerMap.forEach(httpPut::addHeader);
+        httpPut.setEntity(new StringEntity(content, StandardCharsets.UTF_8));
+        return httpPut;
     }
 
 
