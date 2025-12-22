@@ -13,6 +13,7 @@ import gov.cms.esmd.config.YamlConfigLoaderJackson;
 import gov.cms.esmd.documentretrieval.api.BinaryClientAPIHandler;
 import gov.cms.esmd.documentretrieval.api.DeliveryConfirmationAPIHandler;
 import gov.cms.esmd.notification.api.NotificationAPIHandler;
+import gov.cms.esmd.practitioner.api.PractitionerAPIHandler;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -105,6 +106,15 @@ public class MainConsoleApplication {
                     log.info("Successfully processed Delivery Confirmation Request  - {}", new ObjectMapper().writeValueAsString(deliveryConfirmationResponse.getResponse()));
                 } else {
                     log.error("Delivery Confirmation Request processing Failed - {}", deliveryConfirmationResponse.getError());
+                }
+
+                log.info("Now Processing Practitioner request!");
+                var practitionerHandler = new PractitionerAPIHandler(config.getAppSettings(), token.getResponse().getAccessToken());
+                var practitionerResponse =practitionerHandler.processPractitionerRequest(null);
+                if (practitionerResponse.isSuccess()) {
+                    log.info("Successfully processed practitioner Request  - {}", new ObjectMapper().writeValueAsString(practitionerResponse.getResponse()));
+                } else {
+                    log.error("practitioner Request processing Failed - {}", practitionerResponse.getError());
                 }
 
 

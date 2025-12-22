@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Setter
 @Data
 @Getter
@@ -17,5 +19,6 @@ public class Issue {
     private String code;
     private Details details;
     private String diagnostics;
+    private List<String> location;
 
 }
