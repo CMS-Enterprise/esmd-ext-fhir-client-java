@@ -27,5 +27,9 @@ public class Resource {
     private String date;
     private List<Extension> extension;
     private List<Entry> entry;
+    private List<Identifier> identifier;
+    private List<SecurityLabel> securityLabel;
+    private List<Content> content;
+    private Context context;
 
 }

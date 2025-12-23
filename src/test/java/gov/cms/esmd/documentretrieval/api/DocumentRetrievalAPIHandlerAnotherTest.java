@@ -18,9 +18,9 @@ import static org.mockito.ArgumentMatchers.any;
 
 import java.util.Collections;
 
-public class DocumentRetrievalAPIHandlerTest {
+public class DocumentRetrievalAPIHandlerAnotherTest {
 
-    private static final Logger logger = LoggerFactory.getLogger(DocumentRetrievalAPIHandlerTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(DocumentRetrievalAPIHandlerAnotherTest.class);
 
     @Test
     public void testRetrieveDocument_ReturnsSuccessResponse() throws Exception {
@@ -55,7 +55,7 @@ public class DocumentRetrievalAPIHandlerTest {
                 .thenReturn(mockResponse);
 
         // Create handler
-        DocumentRetrievalAPIHandler handler = new DocumentRetrievalAPIHandler(mockHttpClient);
+        DocumentRetrievalAPIHandlerAnother handler = new DocumentRetrievalAPIHandlerAnother(mockHttpClient);
 
         // Setup DocumentRetrievalAPI request
         DocumentRetrievalAPI api = new DocumentRetrievalAPI();
@@ -65,7 +65,7 @@ public class DocumentRetrievalAPIHandlerTest {
         api.setRequestParameters(Collections.emptyList());
 
         // Act
-        DocumentRetrievalAPIHandler.DocumentRetrievalAPIResponseWrapper wrapper =
+        DocumentRetrievalAPIHandlerAnother.DocumentRetrievalAPIResponseWrapper wrapper =
                 handler.retrieveDocument("eyJraWQiOiJQbUJ...", api);
 
         DocumentRetrievalAPISuccessResponse res = wrapper.getSuccessResponse();
