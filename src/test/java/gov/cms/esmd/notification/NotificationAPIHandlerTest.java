@@ -23,8 +23,8 @@ class NotificationAPIHandlerTest {
     @Test
     void test_success() throws Exception {
 
-        YamlConfigLoaderJackson loader = new YamlConfigLoaderJackson("app-settings-config.yml");
-        AppConfigJackson config = loader.getConfig();
+        var loader = new YamlConfigLoaderJackson("app-settings-config-jackson.yml");
+        var config = loader.getConfig();
         var success = false;
 
 

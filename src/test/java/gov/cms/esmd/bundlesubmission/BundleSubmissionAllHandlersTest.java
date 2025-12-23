@@ -26,16 +26,16 @@ public class BundleSubmissionAllHandlersTest {
         System.out.println("==== CLASSPATH CHECK ====");
         System.out.println("Resource (root): " + cl.getResource(""));
         System.out.println("app-settings-config.yml: " +
-                cl.getResource("app-settings-config.yml"));
-        System.out.println("config/app-settings-config.yml: " +
-                cl.getResource("config/app-settings-config.yml"));
+                cl.getResource("app-settings-config-jackson.yml"));
+        System.out.println("config/app-settings-config-jackson.yml: " +
+                cl.getResource("config/app-settings-config-jackson.yml"));
     }
 
     @Test
     void test() throws Exception {
 
-        YamlConfigLoaderJackson loader = new YamlConfigLoaderJackson("app-settings-config.yml");
-        AppConfigJackson config = loader.getConfig();
+        var loader = new YamlConfigLoaderJackson("app-settings-config-jackson.yml");
+        var config = loader.getConfig();
         AtomicBoolean success = new AtomicBoolean(false);
 
         var commonSharedGuid = GuidUtil.generateGuid();
