@@ -14,5 +14,7 @@ import lombok.Setter;
 public class Link {
     private String relation;
     private String url;
+    private String fullUrl;
+    private Resource resource;
 
 }

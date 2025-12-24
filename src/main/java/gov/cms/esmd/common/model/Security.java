@@ -15,6 +15,9 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Security {
-    private List<Coding> coding;
+    private String system;
+    private String code;
+    private String display;
+
 
 }

@@ -12,6 +12,7 @@ import gov.cms.esmd.common.util.GuidUtil;
 import gov.cms.esmd.config.YamlConfigLoaderJackson;
 import gov.cms.esmd.documentretrieval.api.BinaryClientAPIHandler;
 import gov.cms.esmd.documentretrieval.api.DeliveryConfirmationAPIHandler;
+import gov.cms.esmd.documentretrieval.api.DocumentRetrievalAPIHandler;
 import gov.cms.esmd.notification.api.NotificationAPIHandler;
 import gov.cms.esmd.practitioner.api.PractitionerAPIHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -61,6 +62,8 @@ public class MainConsoleApplication {
 
                             if (uploadDocumentResponse.isSuccess()) {
                                 log.info("upload document response success - {}", new ObjectMapper().writeValueAsString(uploadDocumentResponse.getResponse()));
+
+                                log.info("Now Processing Bundle Submission request!");
                                 var bundleSubmissionAPIHandler = new BundleSubmissionAPIHandler(config.getAppSettings(), token.getResponse().getAccessToken());
                                 var bundleSubmissionResponse = bundleSubmissionAPIHandler.processBundleSubmissionRequest(uploadDocumentResponse.getResponse(), commonSharedGuid);
                                 if (bundleSubmissionResponse.isSuccess()) {
@@ -110,11 +113,20 @@ public class MainConsoleApplication {
 
                 log.info("Now Processing Practitioner request!");
                 var practitionerHandler = new PractitionerAPIHandler(config.getAppSettings(), token.getResponse().getAccessToken());
-                var practitionerResponse =practitionerHandler.processPractitionerRequest(null);
+                var practitionerResponse = practitionerHandler.processPractitionerRequest(null);
                 if (practitionerResponse.isSuccess()) {
                     log.info("Successfully processed practitioner Request  - {}", new ObjectMapper().writeValueAsString(practitionerResponse.getResponse()));
                 } else {
                     log.error("practitioner Request processing Failed - {}", practitionerResponse.getError());
+                }
+
+                log.info("Now Processing Document Retrieval request!");
+                var documentRetrievalHandler = new DocumentRetrievalAPIHandler(config.getAppSettings(), token.getResponse().getAccessToken());
+                var documentRetrievalHandlerResponse = documentRetrievalHandler.getDocumentRetrievalData();
+                if (documentRetrievalHandlerResponse.isSuccess()) {
+                    log.info("Successfully processed document retrieval Request  - {}", new ObjectMapper().writeValueAsString(documentRetrievalHandlerResponse.getResponse()));
+                } else {
+                    log.error("Document Retrieval Request processing Failed - {}", documentRetrievalHandlerResponse.getError());
                 }
 
 

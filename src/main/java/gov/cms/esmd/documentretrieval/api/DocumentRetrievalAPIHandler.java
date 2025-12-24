@@ -1,86 +1,140 @@
 package gov.cms.esmd.documentretrieval.api;
 
 
-import gov.cms.esmd.documentretrieval.bean.*;
-import gov.cms.esmd.utilities.JSONUtility;
-import gov.cms.esmd.utilities.bean.DocumentRetrievalAPI;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.cms.esmd.common.model.ClientResponse;
+import gov.cms.esmd.common.util.*;
+import gov.cms.esmd.config.model.AppConfigJackson;
+
+import gov.cms.esmd.documentretrieval.model.DocumentRetrievalResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
+
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class DocumentRetrievalAPIHandler {
 
-    private final HttpClient httpClient;
+    private final AppConfigJackson.AppSettings.DocumentRetrievalAPI settings;
+    private final AppConfigJackson.AppSettings appSettings;
+    private final String token;
+    private final ObjectMapper mapper = new ObjectMapper();
 
-    public DocumentRetrievalAPIHandler(HttpClient httpClient) {
-        this.httpClient = httpClient;
+    public DocumentRetrievalAPIHandler(AppConfigJackson.AppSettings appSettings, String token) {
+        this.appSettings = appSettings;
+        this.settings = appSettings.getDocumentRetrievalAPI();
+        this.token = token;
     }
 
-    public DocumentRetrievalAPIResponseWrapper retrieveDocument(
-            String token, DocumentRetrievalAPI documentRetrievalAPI) throws Exception {
-        log.info("Request: {}", JSONUtility.toJson(documentRetrievalAPI));
+    /**
+     * Returns ClientResponse<DocumentRetrievalResponse>
+     */
+    public ClientResponse<DocumentRetrievalResponse> getDocumentRetrievalData() {
 
-        // Build query params
-        Map<String, String> queryParams = new HashMap<>();
-        if (documentRetrievalAPI.getRequestParameters() != null) {
-            for (DocumentRetrievalAPI.RequestParameter param : documentRetrievalAPI.getRequestParameters()) {
-                if (Boolean.TRUE.equals(param.getInject())) {
-                    queryParams.put(param.getName(), param.getValue());
-                }
-            }
-        }
-
-        String urlWithParams = documentRetrievalAPI.getEndpointURL();
-        if (!queryParams.isEmpty()) {
-            String queryString = queryParams.entrySet().stream()
-                    .map(e -> e.getKey() + "=" + e.getValue())
-                    .collect(Collectors.joining("&"));
-            urlWithParams += "?" + queryString;
-        }
-
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(urlWithParams))
-                .header("Authorization", "Bearer " + token)
-                .header("Accept", documentRetrievalAPI.getAccept())
-                .timeout(Duration.ofSeconds((long) documentRetrievalAPI.getHttpClientRequestTimeOutSeconds()))
-                .GET()
-                .build();
+        DataFileWriterUtils fileWriter =
+                new DataFileWriterUtils(appSettings.getBaseFileLocationFolder());
 
         try {
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            String jsonContent = response.body();
 
-            if (response.statusCode() >= 400) {
-                log.error("Http Response Code: {}", response.statusCode());
-                log.error("Http Response Content: {}", jsonContent);
-                DocumentRetrievalAPIFailedResponse failedResponse =
-                        JSONUtility.fromJson(jsonContent, DocumentRetrievalAPIFailedResponse.class);
-                return new DocumentRetrievalAPIResponseWrapper(failedResponse, null);
-            } else {
-                log.info("Http Response Code: {}", response.statusCode());
-                log.info("Http Response Content: {}", jsonContent);
-                DocumentRetrievalAPISuccessResponse successResponse =
-                        JSONUtility.fromJson(jsonContent, DocumentRetrievalAPISuccessResponse.class);
-                return new DocumentRetrievalAPIResponseWrapper(null, successResponse);
+            // -----------------------------
+            // Query parameters
+            // -----------------------------
+            Map<String, String> queryParams = new HashMap<>();
+            settings.getRequestParameters().forEach(param -> {
+                if (param.isInject()
+                        && param.getName() != null
+                        && param.getValue() != null) {
+                    queryParams.put(param.getName(), param.getValue());
+                }
+            });
+
+            String queryString = URLUtils.toQueryString(queryParams);
+
+            // -----------------------------
+            // Parse URL
+            // -----------------------------
+            var parsed = URLUtils.parseUrl(settings.getEndpointURL());
+            String resourcePathWithQuery = parsed.getResourcePath() + queryString;
+            String finalUrl = parsed.getBaseUrl() + resourcePathWithQuery;
+
+            // -----------------------------
+            // Headers
+            // -----------------------------
+            Map<String, String> headers = new HashMap<>();
+            headers.put("Accept", settings.getAccept());
+            headers.put("Authorization", "Bearer " + token);
+
+            // -----------------------------
+            // Build cURL
+            // -----------------------------
+            String curlCommand = CurlUtil.buildGetCurl(finalUrl, headers);
+            log.info("Outgoing cURL: {}", curlCommand);
+
+            fileWriter.writeText(
+                    "document-retrieval-java",
+                    "curl",
+                    curlCommand
+            );
+
+            // -----------------------------
+            // HTTP request
+            // -----------------------------
+            int timeoutMs =
+                    (int) settings.getHttpClientRequestTimeOutSeconds() * 1000;
+
+            HttpGet httpGet =
+                    HttpClientUtil.getHttpGet(
+                            finalUrl,
+                            timeoutMs,
+                            settings.getAccept(),
+                            token
+                    );
+
+            try (CloseableHttpClient client = HttpClientBuilder.create().build();
+                 CloseableHttpResponse response = client.execute(httpGet)) {
+
+                int statusCode = response.getStatusLine().getStatusCode();
+                String body = response.getEntity() != null
+                        ? EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8)
+                        : null;
+
+                if (statusCode < 200 || statusCode >= 300) {
+                    log.error("Failed processing Document Retrieval Data! Status: {}", statusCode);
+
+                    fileWriter.writeJson(
+                            "document-retrieval-java",
+                            "response-failed-" + GuidUtil.generateGuid(),
+                            body
+                    );
+
+                    return new ClientResponse<>(null, false, body);
+                }
+
+                // -----------------------------
+                // Success case
+                // -----------------------------
+                DocumentRetrievalResponse successResponse =
+                        mapper.readValue(body, DocumentRetrievalResponse.class);
+
+                fileWriter.writeJson(
+                        "document-retrieval-java",
+                        "response-success-" + GuidUtil.generateGuid(),
+                        successResponse
+                );
+
+                return new ClientResponse<>(successResponse, true, null);
             }
-        } catch (Exception ex) {
-            log.error("Exception during document retrieval: {}", ex.getMessage(), ex);
-            throw ex;
-        }
-    }
 
-    @Data
-    public static class DocumentRetrievalAPIResponseWrapper {
-        private final DocumentRetrievalAPIFailedResponse failedResponse;
-        private final DocumentRetrievalAPISuccessResponse successResponse;
+        } catch (Exception ex) {
+            log.error("Exception during Document Retrieval: {}", ex.getMessage(), ex);
+            return new ClientResponse<>(null, false, ex.getMessage());
+        }
     }
 }
