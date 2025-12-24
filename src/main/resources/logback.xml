@@ -4,13 +4,13 @@
               value="%d{yyyy-MM-dd HH:mm:ss},%-5level,esmd-fhir-client-java,dev,%logger{36},%msg%n"/>
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>/var/logs/services/esmd-fhir-client-java.log</file>
+        <file>C:/Users/AmerMaqsood/Downloads/logs/esmd-fhir-client-java.log</file>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <pattern>${LOG_PATTERN}</pattern>
         </encoder>
 
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/var/logs/services/esmd-fhir-client-java.%d{yyyy-MM-dd}.%i.log
+            <fileNamePattern>C:/Users/AmerMaqsood/Downloads/logs/esmd-fhir-client-java.%d{yyyy-MM-dd}.%i.log
             </fileNamePattern>
             <timeBasedFileNamingAndTriggeringPolicy
                     class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
