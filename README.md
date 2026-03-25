@@ -8,9 +8,9 @@
 
 [![OpenJDK 17](https://img.shields.io/badge/OpenJDK-17-green.svg)](https://jdk.java.net/17/)
 
-[![Code Quality](https://img.shields.io/badge/code%20quality-A-green.svg)](https://github.com/your-repo/esmd-fhir-client-dotnet)
+[![Code Quality](https://img.shields.io/badge/code%20quality-A-green.svg)](https://github.com/your-repo/esmd-fhir-client-java)
 
-[![Tests](https://img.shields.io/badge/tests-passing-green.svg)](https://github.com/your-repo/esmd-fhir-client-dotnet)
+[![Tests](https://img.shields.io/badge/tests-passing-green.svg)](https://github.com/your-repo/esmd-fhir-client-java)
 
 
 
